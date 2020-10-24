@@ -1,4 +1,6 @@
 # Simio
+[![Build Status](https://travis-ci.com/RB387/Simio.svg?branch=main)](https://travis-ci.com/RB387/Simio)  
+
 Small, simple and async python rest api web framework based on aiohttp.
 Supports auto swagger generation and background workers. All you need to do is configure config!  
 
