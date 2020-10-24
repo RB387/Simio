@@ -1,0 +1,19 @@
+from typing import Optional
+
+from pydantic import BaseModel  # pylint: disable=no-name-in-module
+
+from simio.handler.base import BaseHandler
+from simio.handler.utils import route
+
+
+class ExampleModel(BaseModel):
+    some_number: int
+
+
+@route(path="/v1/hello/{{user_id}}/")
+class ExampleHandler(BaseHandler):
+    async def post(self, example: ExampleModel, user_id: int):
+        return self.response({{"id": user_id, "some_number": example.some_number,}})
+
+    async def get(self, user_id: Optional[int]):
+        return self.response(f"Your id is {{user_id}}!")
