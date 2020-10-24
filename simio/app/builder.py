@@ -24,6 +24,7 @@ def _initialize_all_modules():
     not_to_run = (
         "python3.",
         "tests",
+        "venv",
         "setup.py",
     )
     for filepath in glob.iglob("**/*.py", recursive=True):
@@ -35,6 +36,7 @@ def _initialize_all_modules():
                 break
 
         if run:
+            print(filepath)
             run_path(filepath)
 
 
