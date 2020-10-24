@@ -1,5 +1,7 @@
 .idea
 .coverage
 venv/
+dist/
+simio.egg-info/
 **/.pytest_cache/
 **/__pycache__/
