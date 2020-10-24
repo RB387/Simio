@@ -23,6 +23,7 @@ def _initialize_all_modules():
     """
     not_to_run = (
         "python3.",
+        "tests",
         "setup.py",
     )
     for filepath in glob.iglob("**/*.py", recursive=True):

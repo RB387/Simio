@@ -196,7 +196,7 @@ never-returning-functions=sys.exit
 [LOGGING]
 
 # Format style used to check logging format string. `old` means using %
-# formatting, `new` is for `{{}}` formatting,and `fstr` is for f-strings.
+# formatting, `new` is for `{}` formatting,and `fstr` is for f-strings.
 logging-format-style=old
 
 # Logging modules to check that the string format arguments are in logging
@@ -339,7 +339,7 @@ max-line-length=100
 max-module-lines=1000
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
-# separator` is used to allow tabulation in dicts, etc.: {{1  : 1,\n222: 2}}.
+# separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
 # `trailing-comma` allows a space between comma and closing bracket: (a, ).
 # `empty-line` allows space-only lines.
 no-space-check=trailing-comma,

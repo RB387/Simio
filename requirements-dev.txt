@@ -5,4 +5,3 @@ pytest-aiohttp~=0.3.0
 mock~=4.0.2
 multidict~=4.7.6
 pytest-cov~=2.10.1
-bumpversion~=0.6
