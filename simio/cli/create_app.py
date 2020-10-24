@@ -18,23 +18,23 @@ PROJECT_STRUCTURE = {
     # pylint: disable=line-too-long
     # Default project structure to create
     "{project_name}": {
-        "__init__.py": ProjectFile(path=os.path.join("files", "module_init")),
-        "config.py": ProjectFile(path=os.path.join("files", "cfg")),
+        "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
+        "config.py": ProjectFile(path=os.path.join("files", "cfg.sim")),
         "handlers": {
-            "__init__.py": ProjectFile(path=os.path.join("files", "module_init")),
-            "example_handler.py": ProjectFile(path=os.path.join("files", "handlers", "example_handler")),
+            "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
+            "example_handler.py": ProjectFile(path=os.path.join("files", "example_handler.sim")),
         },
         "workers": {
-            "__init__.py": ProjectFile(path=os.path.join("files", "module_init")),
-            "ping.py": ProjectFile(path=os.path.join("files", "workers", "ping")),
+            "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
+            "ping.py": ProjectFile(path=os.path.join("files", "ping.sim")),
         },
     },
     "tests": {},
-    "run.py": ProjectFile(path=os.path.join("files", "run")),
-    "requirements.txt": ProjectFile(path=os.path.join("files", "requirements")),
-    "requirements-dev.txt": ProjectFile(path=os.path.join("files", "requirements-dev")),
-    "Makefile": ProjectFile(path=os.path.join("files", "local_makefile")),
-    "pylintrc": ProjectFile(path=os.path.join("files", "local_pylintrc")),
+    "run.py": ProjectFile(path=os.path.join("files", "run.sim")),
+    "requirements.txt": ProjectFile(path=os.path.join("files", "requirements.sim")),
+    "requirements-dev.txt": ProjectFile(path=os.path.join("files", "requirements-dev.sim")),
+    "Makefile": ProjectFile(path=os.path.join("files", "local_makefile.sim")),
+    "pylintrc": ProjectFile(path=os.path.join("files", "local_pylintrc.sim")),
     # pylint: enable=line-too-long
     # fmt: on
 }

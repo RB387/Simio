@@ -18,38 +18,38 @@ class MockProjectFile(ProjectFile):
         (
             {
                 "{project_name}": {
-                    "__init__.py": MockProjectFile(path="files/module_init"),
+                    "__init__.py": MockProjectFile(path="files/module_init.sim"),
                 }
             },
             {"project_name": "myproj"},
             [call('usr/folder/myproj')],
-            [call('files/module_init', {'project_name': 'myproj'})],
+            [call('files/module_init.sim', {'project_name': 'myproj'})],
             [call('usr/folder/myproj/__init__.py', 'content-{project_name}')],
         ),
         (
             {
                 "{project_name}": {
-                    "__init__.py": MockProjectFile(path="files/module_init"),
+                    "__init__.py": MockProjectFile(path="files/module_init.sim"),
                     "handlers": {
                         "handler.py": MockProjectFile(path="files/handler")
                     }
                 },
                 "Makefile": MockProjectFile(path="files/make"),
-                "run.py": MockProjectFile(path="files/run")
+                "run.sim.py": MockProjectFile(path="files/run.sim")
             },
             {"project_name": "mpr"},
             [call('usr/folder/mpr'), call('usr/folder/mpr/handlers')],
             [
-                call('files/module_init', {'project_name': 'mpr'}),
+                call('files/module_init.sim', {'project_name': 'mpr'}),
                 call('files/handler', {'project_name': 'mpr'}),
                 call('files/make', {'project_name': 'mpr'}),
-                call('files/run', {'project_name': 'mpr'})
+                call('files/run.sim', {'project_name': 'mpr'})
             ],
             [
                 call('usr/folder/mpr/__init__.py', 'content-{project_name}'),
                 call('usr/folder/mpr/handlers/handler.py', 'content-{project_name}'),
                 call('usr/folder/Makefile', 'content-{project_name}'),
-                call('usr/folder/run.py', 'content-{project_name}')
+                call('usr/folder/run.sim.py', 'content-{project_name}')
             ],
         ),
         # fmt: on

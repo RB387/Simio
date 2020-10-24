@@ -1,7 +1,7 @@
 import setuptools
 
 with open("requirements.txt", "r") as f:
-    requirements = f.read()
+    requirements = f.read().splitlines()
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -16,8 +16,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     license="Apache 2.0",
     url="https://github.com/RB387/Simio",
-    packages=["simio"],
-    requirements=requirements,
+    packages=setuptools.find_packages(exclude=("tests",)),
+    package_data={
+        'simio.cli.files': ['*.sim'],
+    },
+    include_package_data=True,
+    install_requires=requirements,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: Apache License 2.0",
