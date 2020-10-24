@@ -1,7 +1,8 @@
 # Simio
 Small, simple and async python rest api web framework based on aiohttp.
-Supports auto swagger generation and background workers. All you need to do is configure config!
+Supports auto swagger generation and background workers. All you need to do is configure config!  
 
+You can see example of application with simio [here](https://github.com/RB387/Simio-app-example).  
 ## Start with simio:
 1. Install simio
     ```
