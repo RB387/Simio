@@ -12,8 +12,8 @@ from simio.utils import is_typing, cast_cap_words_to_lower
 
 
 def route(
-    path: str, name: Opt[str] = None
-) -> Callable:  # pylint: disable=unused-argument
+    path: str, name: Opt[str] = None  # pylint: disable=unused-argument
+) -> Callable:
     """
         Decorator to add app route
 

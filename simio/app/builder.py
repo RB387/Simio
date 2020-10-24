@@ -122,9 +122,9 @@ class AppBuilder:
         """
         worker = worker_func(**kwargs)
 
-        if not isinstance(
+        if not isinstance(  # pylint: disable=isinstance-second-argument-not-valid-type
             worker, Awaitable
-        ):  # pylint: disable=isinstance-second-argument-not-valid-type
+        ):
             raise WorkerTypeError("You are trying to create worker that is not async!")
 
         app[WORKERS][worker_func] = self._loop.create_task(worker)
