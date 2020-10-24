@@ -11,7 +11,9 @@ from simio.handler.http_methods import HTTP_METHODS
 from simio.utils import is_typing, cast_cap_words_to_lower
 
 
-def route(path: str, name: Opt[str] = None) -> Callable:  # pylint: disable=unused-argument
+def route(
+    path: str, name: Opt[str] = None
+) -> Callable:  # pylint: disable=unused-argument
     """
         Decorator to add app route
 

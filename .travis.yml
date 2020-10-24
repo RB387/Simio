@@ -8,3 +8,4 @@ install:
 script:
   - pytest -vv
   - pylint simio
+  - black simio
