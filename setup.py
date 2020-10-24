@@ -17,9 +17,6 @@ setuptools.setup(
     license="Apache 2.0",
     url="https://github.com/RB387/Simio",
     packages=setuptools.find_packages(exclude=("tests",)),
-    package_data={
-        'simio.cli.files': ['*.sim'],
-    },
     include_package_data=True,
     install_requires=requirements,
     classifiers=[
