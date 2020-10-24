@@ -19,23 +19,23 @@ Simio is very simple! Here is some examples:
 ## Run your application
 All you need to run your application is:
 * Get config
-    ```
+    ```python
     config = get_config()
     ```
 * Create app builder
-    ```
+    ```python
     from simio.app.builder import AppBuilder
     builder = AppBuilder(config)
     ```
 * Build and run app
-    ```
+    ```python
     from aiohttp import web
     app = builder.build_app()
     web.run_app(app)
     ```
 ## Handler
 Just add `route` decorator to your handler inherited from BaseHandler
-```
+```python
 from pydantic import BaseModel
 
 from simio.handler.base import BaseHandler
@@ -67,7 +67,7 @@ You can find raw json file in your project directory
 Swagger generation can be disabled in config
 
 ## Worker
-```
+```python
 async def ping_worker(sleep_time):
     print('Work')
     await asyncio.sleep(sleep_time)
@@ -88,7 +88,7 @@ def get_config():
 ## Clients
 To register your client all you need to do is ...  
 Ofc! Just add them to config
-```
+```python
 def get_config():
     return {
         APP: {
@@ -102,7 +102,7 @@ def get_config():
     }
 ```
 They can be accessed in handler like this:
-```
+```python
 from simio.handler.base import BaseHandler
 from simio.handler.utils import route
 from simio.app.config_names import CLIENTS
