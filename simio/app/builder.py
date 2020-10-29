@@ -1,6 +1,7 @@
 import asyncio
 import glob
 import json
+import os
 from runpy import run_path
 from typing import Type, Awaitable, Callable, Any, List
 
@@ -61,7 +62,9 @@ class AppBuilder:
         else:
             self._loop = loop
 
-        _initialize_all_modules(self._config[APP][APP.handlers_path])
+        app_path = os.path.join(os.getcwd(), self._config[APP][APP.name])
+        handlers_path = os.path.join(app_path, self._config[APP][APP.handlers_path])
+        _initialize_all_modules(handlers_path)
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
