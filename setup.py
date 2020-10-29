@@ -8,7 +8,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="simio",
-    version="0.0.3",
+    version="0.0.4",
     author="Nikita Zavadin",
     author_email="zavadin142@gmail.com",
     description="Small, simple and async web framework",
