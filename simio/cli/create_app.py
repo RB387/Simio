@@ -9,7 +9,7 @@ class ProjectFile:
     Class that contains path for file
     """
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = os.path.join(os.path.dirname(__file__), path)
 
 
@@ -40,7 +40,7 @@ PROJECT_STRUCTURE = {
 }
 
 
-def _read_file_template(path, kwargs_container):
+def _read_file_template(path: str, kwargs_container: dict):
     """
     Read data from file and format it with kwargs_container
 
@@ -53,7 +53,7 @@ def _read_file_template(path, kwargs_container):
         return file_content.format(**kwargs_container)
 
 
-def _write_example_file(path, file_content):
+def _write_example_file(path: str, file_content: str):
     """
     Write file_content to file
     :param path: path to file
@@ -63,7 +63,7 @@ def _write_example_file(path, file_content):
         f.write(file_content)
 
 
-def _check_and_create_dir(path):
+def _check_and_create_dir(path: str):
     """
     Checks if such directory exists. If not, creates
 

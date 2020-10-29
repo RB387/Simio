@@ -17,27 +17,12 @@ from simio.swagger.fabric import swagger_fabric
 from simio.swagger.entities import SwaggerConfig
 
 
-def _initialize_all_modules():
+def _initialize_all_modules(handlers_path):
     """
     Runs all modules to execute decorators and register routes
     """
-    not_to_run = (
-        "python3.",
-        "tests",
-        "venv",
-        "setup.py",
-    )
-    for filepath in glob.iglob("**/*.py", recursive=True):
-        run = True
-
-        for not_to_run_file in not_to_run:
-            if not_to_run_file in filepath:
-                run = False
-                break
-
-        if run:
-            print(filepath)
-            run_path(filepath)
+    for filepath in glob.iglob(f"{handlers_path}/**/*.py", recursive=True):
+        run_path(filepath)
 
 
 def _deep_merge_dicts(lhs: dict, rhs: dict) -> dict:
@@ -76,7 +61,7 @@ class AppBuilder:
         else:
             self._loop = loop
 
-        _initialize_all_modules()
+        _initialize_all_modules(self._config[APP][APP.handlers_path])
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
