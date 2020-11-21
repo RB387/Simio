@@ -46,14 +46,14 @@ from simio.handler.utils import route
 
 
 RequestSchema = t.Dict({
-    t.Key("key"): t.ToInt(gte=0)
+    t.Key("some_number"): t.ToInt(gte=0)
 })
 
 
 @route(path="/v1/hello/{user_id}/")
 class ExampleHandler(BaseHandler):
     async def post(self, example: RequestSchema, user_id: int):
-        return self.response({"id": user_id, "some_number": example.some_number,})
+        return self.response({"id": user_id, "some_number": example["some_number"],})
 
     async def get(self, user_id: int):
         return self.response(f"Your id is {user_id}!")
@@ -119,7 +119,7 @@ class HandlerWithClient(BaseHandler):
 
     async def post(self, user_id: int):
         await self.mongo_client.db.coll.insert_one({"user": user_id})
-        return self.response({"id": user_id, "some_number": example.some_number,})
+        return self.response({"id": user_id})
 
 ```
 And that's all!
