@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional as Opt, List, Type
+from typing import Any, Optional as Opt, List
 
 from aiohttp import web
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 
 __doc__ = "Module with base entities for Handler"

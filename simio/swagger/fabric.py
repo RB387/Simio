@@ -125,19 +125,15 @@ def _create_swagger_properties(request_trafaret: t.Trafaret) -> List[SwaggerProp
 
             properties.append(swagger_property)
         return properties
-    elif isinstance(request_trafaret, t.List):
+    if isinstance(request_trafaret, t.List):
         items_type = _cast_to_swagger_type(request_trafaret.trafaret)
 
         if items_type == "array":
             items = first(_create_swagger_properties(request_trafaret.trafaret))
             return [SwaggerProperty(type="array", items=items)]
-        elif items_type == "object":
+        if items_type == "object":
             properties = _create_swagger_properties(request_trafaret.trafaret)
             return [SwaggerProperty(type="object", properties=properties)]
-        else:
-            return [
-                SwaggerProperty(type="array", items=SwaggerProperty(type=items_type))
-            ]
+        return [SwaggerProperty(type="array", items=SwaggerProperty(type=items_type))]
 
-    else:
-        raise ValueError(f"Found unexpected trafaret type {repr(request_trafaret)}")
+    raise ValueError(f"Found unexpected trafaret type {repr(request_trafaret)}")
