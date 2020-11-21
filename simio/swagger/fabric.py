@@ -1,6 +1,9 @@
 from typing import List, Type, Union
 
 from aiohttp.web_exceptions import HTTPBadRequest
+import trafaret as t
+from more_itertools import first
+from trafaret import Trafaret
 
 from simio.app.config_names import APP
 from simio.app.entities import AppRoute
@@ -11,7 +14,6 @@ from simio.swagger.entities import (
     SwaggerPath,
     SwaggerMethod,
     SwaggerResponse,
-    SwaggerSchema,
     SwaggerProperty,
     SwaggerParameter,
 )
@@ -20,9 +22,11 @@ from simio.handler.base import HandlerMethod
 from simio.utils import is_typing
 
 
-def _cast_to_swagger_type(var_type: Union[Type]):
+def _cast_to_swagger_type(var_type: Union[Type, Trafaret]) -> str:
     if is_typing(var_type):
         var_type = var_type.__args__[0]
+    elif isinstance(var_type, Trafaret):
+        var_type = type(var_type)
 
     if var_type not in PYTHON_TYPE_TO_SWAGGER:
         raise UnsupportedSwaggerType(
@@ -73,16 +77,12 @@ def _create_swagger_method(
         ],
     )
 
-    schema = SwaggerSchema(type="object")
-
-    if handler_method.request_schema:
-        schema_name = handler_method.request_schema.__name__
-        for field_name, field in handler_method.request_schema.__fields__.items():
-            schema.properties.append(
-                SwaggerProperty(
-                    name=field_name, type=_cast_to_swagger_type(field.type_)
-                )
-            )
+    if handler_method.request_schema is not None:
+        schema_name = handler_method.request_schema.name
+        schema_properties = _create_swagger_properties(
+            handler_method.request_schema.trafaret
+        )
+        schema = SwaggerProperty(type="object", properties=schema_properties)
         method.parameters.append(
             SwaggerParameter(in_="body", name=schema_name, schema=schema,)
         )
@@ -107,3 +107,33 @@ def _create_swagger_method(
         )
 
     return method
+
+
+def _create_swagger_properties(request_trafaret: t.Trafaret) -> List[SwaggerProperty]:
+    if isinstance(request_trafaret, t.Dict):
+        properties = []
+        for key in request_trafaret.keys:
+            swagger_property = SwaggerProperty(
+                name=key.get_name(), type=_cast_to_swagger_type(key.trafaret)
+            )
+            property_type = _cast_to_swagger_type(key.trafaret)
+
+            if property_type == "array":
+                swagger_property.items = first(_create_swagger_properties(key.trafaret))
+            elif property_type == "object":
+                swagger_property.properties = _create_swagger_properties(key.trafaret)
+
+            properties.append(swagger_property)
+        return properties
+    if isinstance(request_trafaret, t.List):
+        items_type = _cast_to_swagger_type(request_trafaret.trafaret)
+
+        if items_type == "array":
+            items = first(_create_swagger_properties(request_trafaret.trafaret))
+            return [SwaggerProperty(type="array", items=items)]
+        if items_type == "object":
+            properties = _create_swagger_properties(request_trafaret.trafaret)
+            return [SwaggerProperty(type="object", properties=properties)]
+        return [SwaggerProperty(type="array", items=SwaggerProperty(type=items_type))]
+
+    raise ValueError(f"Found unexpected trafaret type {repr(request_trafaret)}")

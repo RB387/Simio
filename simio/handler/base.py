@@ -1,22 +1,32 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional as Opt, List, Type
+from typing import Any, Optional as Opt, List
 
 from aiohttp import web
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 
 __doc__ = "Module with base entities for Handler"
+
+from trafaret import Trafaret
+
+
+@dataclass
+class RequestSchema:
+    trafaret: Trafaret
+    name: str
 
 
 @dataclass
 class HandlerMethod:
     """
         Describes HTTP method of BaseHandler
+
+        path_args and query_args contains dict where
+        keys are names of args and value are type hints
     """
 
     method: str
 
-    request_schema: Opt[Type[BaseModel]] = None
+    request_schema: Opt[RequestSchema] = None
     path_args: dict = field(default_factory=dict)
     query_args: dict = field(default_factory=dict)
 

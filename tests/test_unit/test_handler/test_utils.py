@@ -3,9 +3,9 @@ import typing
 
 from simio.app.builder import AppBuilder
 from simio.app.entities import AppRoute
-from simio.handler.base import BaseHandler, HandlerMethod
+from simio.handler.base import BaseHandler, HandlerMethod, RequestSchema
 from simio.handler.utils import route
-from tests.conftest import SampleHandlerOneRaw, SampleModelOne, SampleHandlerTwoRaw
+from tests.conftest import SampleHandlerOneRaw, SampleSchemaOne, SampleHandlerTwoRaw
 
 
 @pytest.mark.parametrize(
@@ -18,7 +18,7 @@ from tests.conftest import SampleHandlerOneRaw, SampleModelOne, SampleHandlerTwo
             None,
             [AppRoute(handler=BaseHandler, path='/v1/some_path/{user_id}/', name='test_handler')],
             [
-                HandlerMethod(method='post', request_schema=SampleModelOne, path_args={'user_id': int}, query_args={}),
+                HandlerMethod(method='post', request_schema=RequestSchema(name='data', trafaret=SampleSchemaOne), path_args={'user_id': int}, query_args={}),
                 HandlerMethod(method='get', request_schema=None, path_args={'user_id': int}, query_args={'q': typing.Optional[str]})
             ],
         ),

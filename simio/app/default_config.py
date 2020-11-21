@@ -7,7 +7,6 @@ def get_default_config() -> dict:
     return {
         APP: {
             APP.version: "0.1.0",
-            APP.handlers_path: "handlers",
             APP.autogen_swagger: True,
             APP.enable_swagger: True,
             APP.swagger_config: {
