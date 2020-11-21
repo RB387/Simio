@@ -122,4 +122,7 @@ class HandlerWithClient(BaseHandler):
         return self.response({"id": user_id, "some_number": example.some_number,})
 
 ```
-And that all!
+And that's all!
+
+
+!! This is 0.x version, so be ready for major updates in minor version !!
