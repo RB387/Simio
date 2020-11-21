@@ -13,24 +13,27 @@ def clear_globals():
     AppBuilder._APP_ROUTES = []
 
 
-SampleSchemaOne = t.Dict({
-    t.Key("arg_one"): t.String(),
-    t.Key("arg_two"): t.Int(),
-    t.Key("arg_three", optional=True): t.Bool()
-})
+SampleSchemaOne = t.Dict(
+    {
+        t.Key("arg_one"): t.String(),
+        t.Key("arg_two"): t.Int(),
+        t.Key("arg_three", optional=True): t.Bool(),
+    }
+)
 
 
-SampleSchemaTwo = t.Dict({
-    t.Key("arg_one"): t.Dict({
-        t.Key("key"): t.List(
-            t.Dict({
-                t.Key("sub_key"): t.Int(),
-                t.Key("sub_key2"): t.String()
-            })
-        )
-    }),
-    t.Key("arg_two"): t.List(t.Int()),
-})
+SampleSchemaTwo = t.Dict(
+    {
+        t.Key("arg_one"): t.Dict(
+            {
+                t.Key("key"): t.List(
+                    t.Dict({t.Key("sub_key"): t.Int(), t.Key("sub_key2"): t.String()})
+                )
+            }
+        ),
+        t.Key("arg_two"): t.List(t.Int()),
+    }
+)
 
 
 class SampleHandlerOneRaw(BaseHandler):
