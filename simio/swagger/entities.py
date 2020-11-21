@@ -36,20 +36,22 @@ class SwaggerResponse(AbstractSwagger):
 
 @dataclass
 class SwaggerProperty(AbstractSwagger):
-    name: str
     type: str
+    name: Opt[str] = None
+    items: Opt['SwaggerProperty'] = None
+    properties: List['SwaggerProperty'] = field(default_factory=list)
 
     def json(self) -> dict:
-        return {self.name: {"type": self.type}}
+        json_ = {"type": self.type}
+        if self.items is not None:
+            json_["items"] = self.items.json()
+        elif len(self.properties) != 0:
+            json_["properties"] = _list_to_dict(self.properties)
 
+        if self.name is not None:
+            json_ = {self.name: json_}
 
-@dataclass
-class SwaggerSchema(AbstractSwagger):
-    type: str
-    properties: List[SwaggerProperty] = field(default_factory=list)
-
-    def json(self) -> dict:
-        return {"type": self.type, "properties": _list_to_dict(self.properties)}
+        return json_
 
 
 @dataclass
@@ -57,7 +59,7 @@ class SwaggerParameter(AbstractSwagger):
     in_: str
     name: str
     required: Opt[bool] = None
-    schema: Opt[SwaggerSchema] = None
+    schema: Opt[SwaggerProperty] = None
     type: Opt[str] = None
 
     def json(self) -> dict:
