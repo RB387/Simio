@@ -39,19 +39,20 @@ All you need to run your application is:
 ## Handler
 Just add `route` decorator to your handler inherited from BaseHandler
 ```python
-from pydantic import BaseModel
+import trafaret as t
 
 from simio.handler.base import BaseHandler
 from simio.handler.utils import route
 
 
-class ExampleModel(BaseModel):
-    some_number: int
+RequestSchema = t.Dict({
+    t.Key("key"): t.ToInt(gte=0)
+})
 
 
 @route(path="/v1/hello/{user_id}/")
 class ExampleHandler(BaseHandler):
-    async def post(self, example: ExampleModel, user_id: int):
+    async def post(self, example: RequestSchema, user_id: int):
         return self.response({"id": user_id, "some_number": example.some_number,})
 
     async def get(self, user_id: int):
