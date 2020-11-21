@@ -187,4 +187,4 @@ class AppBuilder:
         path = self._config[APP][APP.swagger_config]["config_path"]
 
         with open(path, "w") as f:
-            f.write(json.dumps(swagger.json()))
+            f.write(json.dumps(swagger.json(), indent=4, sort_keys=True))
