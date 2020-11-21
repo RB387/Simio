@@ -1,9 +1,8 @@
 from typing import List, Type, Union
 
-from aiohttp.web_exceptions import HTTPBadRequest
 import trafaret as t
+from aiohttp.web_exceptions import HTTPBadRequest
 from more_itertools import first
-from trafaret import Trafaret
 
 from simio.app.config_names import APP
 from simio.app.entities import AppRoute
@@ -22,10 +21,10 @@ from simio.handler.base import HandlerMethod
 from simio.utils import is_typing
 
 
-def _cast_to_swagger_type(var_type: Union[Type, Trafaret]) -> str:
+def _cast_to_swagger_type(var_type: Union[Type, t.Trafaret]) -> str:
     if is_typing(var_type):
         var_type = var_type.__args__[0]
-    elif isinstance(var_type, Trafaret):
+    elif isinstance(var_type, t.Trafaret):
         var_type = type(var_type)
 
     if var_type not in PYTHON_TYPE_TO_SWAGGER:
