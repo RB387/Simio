@@ -76,10 +76,12 @@ def _create_swagger_method(
             ),
         ],
     )
-    
+
     if handler_method.request_schema is not None:
         schema_name = handler_method.request_schema.name
-        schema_properties = _create_swagger_properties(handler_method.request_schema.trafaret)
+        schema_properties = _create_swagger_properties(
+            handler_method.request_schema.trafaret
+        )
         schema = SwaggerProperty(type="object", properties=schema_properties)
         method.parameters.append(
             SwaggerParameter(in_="body", name=schema_name, schema=schema,)
@@ -133,7 +135,9 @@ def _create_swagger_properties(request_trafaret: t.Trafaret) -> List[SwaggerProp
             properties = _create_swagger_properties(request_trafaret.trafaret)
             return [SwaggerProperty(type="object", properties=properties)]
         else:
-            return [SwaggerProperty(type="array", items=SwaggerProperty(type=items_type))]
+            return [
+                SwaggerProperty(type="array", items=SwaggerProperty(type=items_type))
+            ]
 
     else:
         raise ValueError(f"Found unexpected trafaret type {repr(request_trafaret)}")

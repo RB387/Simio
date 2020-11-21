@@ -56,11 +56,13 @@ def _prepare_handler_methods(cls: Type[BaseHandler], path: str) -> List[HandlerM
         handler = getattr(cls, method_name)
         handler_method = HandlerMethod(method=method_name)
         method_args = get_type_hints(handler)
-        method_args.pop('return', None)
+        method_args.pop("return", None)
 
         for arg_name, type_hint in method_args.items():
             if not is_typing(type_hint) and isinstance(type_hint, Trafaret):
-                handler_method.request_schema = RequestSchema(trafaret=type_hint, name=arg_name)
+                handler_method.request_schema = RequestSchema(
+                    trafaret=type_hint, name=arg_name
+                )
             elif f"{{{arg_name}}}" in path:
                 handler_method.path_args[arg_name] = type_hint
             else:
@@ -93,7 +95,9 @@ def _handler(func: Callable, handler_method: HandlerMethod):
                 kwargs[arg_name] = value
 
         if handler_method.request_schema is not None:
-            value = _cast_type(await self.request.json(), handler_method.request_schema.trafaret)
+            value = _cast_type(
+                await self.request.json(), handler_method.request_schema.trafaret
+            )
             kwargs[handler_method.request_schema.name] = value
 
         return await func(self, *args, **kwargs)
@@ -123,4 +127,3 @@ def get_bad_request_exception(message: Any) -> HTTPBadRequest:
     """
     body = {"error": message}
     return HTTPBadRequest(reason="Bad Request", body=json.dumps(body))
-

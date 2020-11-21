@@ -38,8 +38,8 @@ class SwaggerResponse(AbstractSwagger):
 class SwaggerProperty(AbstractSwagger):
     type: str
     name: Opt[str] = None
-    items: Opt['SwaggerProperty'] = None
-    properties: List['SwaggerProperty'] = field(default_factory=list)
+    items: Opt["SwaggerProperty"] = None
+    properties: List["SwaggerProperty"] = field(default_factory=list)
 
     def json(self) -> dict:
         json_ = {"type": self.type}

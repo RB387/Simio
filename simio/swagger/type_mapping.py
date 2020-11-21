@@ -29,5 +29,5 @@ PYTHON_TYPE_TO_SWAGGER = {
     int: "integer",
     float: "number",
     bool: "boolean",
-    list: "array"
+    list: "array",
 }
