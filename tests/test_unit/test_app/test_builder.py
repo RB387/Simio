@@ -25,19 +25,19 @@ def test_merge_configs(lhs, rhs, expected_result):
 
 class TestAppBuilder:
     def test_initiated_app_config(self, app):
-        assert app["config"] == _deep_merge_dicts(get_default_config(), TEST_APP_CONFIG)
+        assert app.app["config"] == _deep_merge_dicts(get_default_config(), TEST_APP_CONFIG)
 
     def test_created_clients(self, app):
-        assert len(app[CLIENTS]) == len(TEST_APP_CONFIG[CLIENTS])
+        assert len(app.app[CLIENTS]) == len(TEST_APP_CONFIG[CLIENTS])
 
-        for client, client_instance in app[CLIENTS].items():
+        for client, client_instance in app.app[CLIENTS].items():
             for attr_name, attr_value in TEST_APP_CONFIG[CLIENTS][client].items():
                 assert getattr(client_instance, attr_name) == attr_value
 
     @pytest.mark.asyncio
     async def test_created_workers(self, app):
-        assert len(app[WORKERS]) == len(TEST_APP_CONFIG[WORKERS])
+        assert len(app.app[WORKERS]) == len(TEST_APP_CONFIG[WORKERS])
 
-        for worker, worker_instance in app[WORKERS].items():
+        for worker, worker_instance in app.app[WORKERS].items():
             result = await asyncio.gather(worker_instance)
             assert result[0] == TEST_APP_CONFIG[WORKERS][worker]["return_value"]
