@@ -51,7 +51,7 @@ def get_bad_request_exception(message: Any) -> HTTPBadRequest:
             {"error": message}
     """
     body = {"error": message}
-    return HTTPBadRequest(reason="Bad Request", body=json.dumps(body))
+    return HTTPBadRequest(reason="Bad Request", body=json.dumps(body).encode())
 
 
 def _prepare_handler_methods(cls: Type[BaseHandler], path: str) -> List[HandlerMethod]:
