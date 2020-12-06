@@ -204,13 +204,19 @@ from tests.conftest import SampleHandlerOne, SampleHandlerTwo, SampleHandlerThre
                                             },
                                             "arg_two": {
                                                 "items": {
-                                                    "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "type": "array"
+                                                    "type": "integer"
                                                 },
                                                 "type": "array"
-                                            }
+                                            },
+                                            'arg_three': {
+                                                'items': {
+                                                    'items': {
+                                                        'type': 'integer'
+                                                    },
+                                                    'type': 'array'
+                                                },
+                                                'type': 'array'
+                                            },
                                         },
                                         "type": "object"
                                     }

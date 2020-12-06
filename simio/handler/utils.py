@@ -44,6 +44,16 @@ def route(
     return decorator
 
 
+def get_bad_request_exception(message: Any) -> HTTPBadRequest:
+    """
+    :param message: text of your exception
+    :return: returns HTTPBadRequest exception with json:
+            {"error": message}
+    """
+    body = {"error": message}
+    return HTTPBadRequest(reason="Bad Request", body=json.dumps(body))
+
+
 def _prepare_handler_methods(cls: Type[BaseHandler], path: str) -> List[HandlerMethod]:
     """
         Extracts from class all request handlers by http methods name,
@@ -117,13 +127,3 @@ def _cast_type(value, type_hint):
         raise get_bad_request_exception(e.as_dict())
     except (ValueError, TypeError) as e:
         raise get_bad_request_exception(str(e))
-
-
-def get_bad_request_exception(message: Any) -> HTTPBadRequest:
-    """
-    :param message: text of your exception
-    :return: returns HTTPBadRequest exception with json:
-            {"error": message}
-    """
-    body = {"error": message}
-    return HTTPBadRequest(reason="Bad Request", body=json.dumps(body))

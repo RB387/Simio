@@ -32,9 +32,8 @@ All you need to run your application is:
     ```
 * Build and run app
     ```python
-    from aiohttp import web
-    app = builder.build_app()
-    web.run_app(app)
+    app = builder.build_app(config)
+    app.run()
     ```
 ## Handler
 Just add `route` decorator to your handler inherited from BaseHandler

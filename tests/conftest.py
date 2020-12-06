@@ -32,6 +32,7 @@ SampleSchemaTwo = t.Dict(
             }
         ),
         t.Key("arg_two"): t.List(t.Int()),
+        t.Key("arg_three"): t.List(t.List(t.Int())),
     }
 )
 

@@ -16,15 +16,6 @@ class AbstractSwagger(ABC):
         ...
 
 
-def _list_to_dict(swagger_elements: List[AbstractSwagger]):
-    dictionary = {}
-
-    for element in swagger_elements:
-        dictionary = {**dictionary, **element.json()}
-
-    return dictionary
-
-
 @dataclass
 class SwaggerResponse(AbstractSwagger):
     code: int
@@ -124,3 +115,12 @@ class SwaggerConfig:
             "info": self.info.json(),
             "paths": _list_to_dict(self.paths),
         }
+
+
+def _list_to_dict(swagger_elements: List[AbstractSwagger]):
+    dictionary = {}
+
+    for element in swagger_elements:
+        dictionary = {**dictionary, **element.json()}
+
+    return dictionary
