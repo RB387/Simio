@@ -120,7 +120,7 @@ class AppBuilder:
         self,
         app: web.Application,
         cron: str,
-        cron_job_func: Callable[[web.Application, Any], Awaitable],
+        cron_job_func: Callable[[web.Application], Awaitable],
     ):
         timezone = self._config[APP][APP.timezone]
 
