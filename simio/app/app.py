@@ -40,7 +40,10 @@ class Application:
         return self._runner
 
     def run(
-        self, run_forever: bool = True, log_func: Callable[..., None] = print, **site_kwargs
+        self,
+        run_forever: bool = True,
+        log_func: Callable[..., None] = print,
+        **site_kwargs,
     ):
         """
         Runs aiohttp's application

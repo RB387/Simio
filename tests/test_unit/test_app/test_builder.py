@@ -25,7 +25,9 @@ def test_merge_configs(lhs, rhs, expected_result):
 
 class TestAppBuilder:
     def test_initiated_app_config(self, app):
-        assert app.app["config"] == _deep_merge_dicts(get_default_config(), TEST_APP_CONFIG)
+        assert app.app["config"] == _deep_merge_dicts(
+            get_default_config(), TEST_APP_CONFIG
+        )
 
     def test_created_clients(self, app):
         assert len(app.app[CLIENTS]) == len(TEST_APP_CONFIG[CLIENTS])
