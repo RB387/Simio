@@ -1,7 +1,9 @@
 from asyncio import sleep
 
+from aiohttp import web
 
-async def ping_worker(sleep_time):
+
+async def ping_worker(app: web.Application, sleep_time: int):
     while True:
-        print('Background worker works!')
+        app.logger.info('Background worker works!')
         await sleep(sleep_time)

@@ -1,9 +1,11 @@
 import os
 from pathlib import Path
-from unittest.mock import Mock as ExampleClient
 
-from simio.app.config_names import APP, CLIENTS, VARS, WORKERS, OTHER
+from simio.app.config_names import APP, CLIENTS, VARS, WORKERS, OTHER, CRONS
+
+from {project_name}.crons.heartbeat import heartbeat
 from {project_name}.workers.ping import ping_worker
+from {project_name}.mock_client import ExampleClient
 
 
 def get_config():
@@ -27,6 +29,11 @@ def get_config():
             ping_worker: {{
                 "sleep_time": 5
             }}
+        }},
+        CRONS: {{
+            "*/1 * * * *": (
+                heartbeat,
+            ),
         }},
         OTHER: {{
             "something": 1,

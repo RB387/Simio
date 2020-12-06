@@ -5,6 +5,8 @@ from asyncio import AbstractEventLoop
 from runpy import run_path
 from typing import Type, Awaitable, Callable, Any, List, Optional as Opt
 
+from croniter import croniter
+from aiocron import crontab
 from aiohttp import web
 from aiohttp.web_runner import BaseSite, TCPSite
 from swagger_ui import aiohttp_api_doc
@@ -13,8 +15,8 @@ from simio.app.app import Application
 from simio.app.entities import AppRoute
 from simio.app.default_config import get_default_config
 from simio.clients.client_protocol import ClientProtocol
-from simio.app.config_names import CLIENTS, WORKERS, APP
-from simio.exceptions import WorkerTypeError
+from simio.app.config_names import CLIENTS, WORKERS, APP, CRONS
+from simio.exceptions import WorkerTypeError, InvalidCronFormat
 from simio.handler.base import BaseHandler
 from simio.swagger.fabric import swagger_fabric
 from simio.swagger.entities import SwaggerConfig
@@ -76,6 +78,7 @@ class AppBuilder:
 
         self._loop.run_until_complete(self._register_clients(app))
         self._create_workers(app)
+        self._create_crons(app)
 
         if self._config[APP][APP.enable_swagger]:
             if self._config[APP][APP.autogen_swagger]:
@@ -93,8 +96,8 @@ class AppBuilder:
     def create_worker(
         self,
         app: web.Application,
-        worker_func: Callable[[Any], Awaitable],
-        **kwargs: dict,
+        worker_func: Callable[[web.Application, Any], Awaitable],
+        **kwargs,
     ):
         """
         Creates workers for application
@@ -103,6 +106,7 @@ class AppBuilder:
         :param kwargs: kwargs for worker
         :return:
         """
+        kwargs["app"] = app
         worker = worker_func(**kwargs)
 
         if not isinstance(  # pylint: disable=isinstance-second-argument-not-valid-type
@@ -111,6 +115,22 @@ class AppBuilder:
             raise WorkerTypeError("You are trying to create worker that is not async!")
 
         app[WORKERS][worker_func] = self._loop.create_task(worker)
+
+    def create_cron(
+        self,
+        app: web.Application,
+        cron: str,
+        cron_job_func: Callable[[web.Application, Any], Awaitable],
+    ):
+        timezone = self._config[APP][APP.timezone]
+
+        if not croniter.is_valid(cron):
+            raise InvalidCronFormat(f"Cron {cron} has invalid format")
+
+        cron_job = crontab(
+            cron, cron_job_func, args=(app,), loop=self._loop, tz=timezone
+        )
+        app[CRONS][cron_job_func] = cron_job
 
     @staticmethod
     def add_route(path: str, handler: Type[BaseHandler], name: str) -> AppRoute:
@@ -166,6 +186,12 @@ class AppBuilder:
         app[WORKERS] = {}
         for worker_func, kwargs in self._config.get(WORKERS, {}).items():
             self.create_worker(app, worker_func, **kwargs)
+
+    def _create_crons(self, app: web.Application):
+        app[CRONS] = {}
+        for cron, cron_jobs in self._config[CRONS].items():
+            for cron_job_func in cron_jobs:
+                self.create_cron(app, cron, cron_job_func)
 
     def _generate_swagger(self) -> SwaggerConfig:
         """

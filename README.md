@@ -67,23 +67,44 @@ Just run your app and open:
 ![Example of swagger](https://raw.githubusercontent.com/RB387/Simio/main/git_images/swagger.png)
   
 You can find raw json file in your project directory
+
 Swagger generation can be disabled in config
 
-## Worker
+## Workers and Crons
+Any async function that has `app` argument can be worker 
+
+But for cron `app` should be the only one argument
+
+You can access logger, clients and everything else from app
 ```python
-async def ping_worker(sleep_time):
-    print('Work')
+async def ping_worker(app: web.Application, sleep_time: int):
+    app.logger.info('Work')
     await asyncio.sleep(sleep_time)
+
+
+async def cron_job(app: web.Application):
+    await app[CLIENTS][MongoClient].db.collection.insert({"status": "alive"})
+
 
 def get_config():
     return {
         APP: {
             APP.name: "simio_app",
         },
+        CLIENTS: {
+            MongoClient: {
+                "host": "localhost"
+            }
+        },
         WORKERS: {
             ping_worker: {
                 "sleep_time": 5
             }
+        },
+        CRONS: {
+            "*/1 * * * *": (
+                cron_job,
+            ),
         },
     }
 ```

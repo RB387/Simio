@@ -19,6 +19,7 @@ PROJECT_STRUCTURE = {
     # Default project structure to create
     "{project_name}": {
         "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
+        "mock_client.py": ProjectFile(path=os.path.join("files", "client.sim")),
         "config.py": ProjectFile(path=os.path.join("files", "cfg.sim")),
         "handlers": {
             "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
@@ -28,6 +29,10 @@ PROJECT_STRUCTURE = {
             "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
             "ping.py": ProjectFile(path=os.path.join("files", "ping.sim")),
         },
+        "crons": {
+            "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
+            "heartbeat.py": ProjectFile(path=os.path.join("files", "heartbeat_cron.sim")),
+        }
     },
     "tests": {},
     "run.py": ProjectFile(path=os.path.join("files", "run.sim")),

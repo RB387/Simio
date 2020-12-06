@@ -1,11 +1,12 @@
 import asyncio
+from unittest.mock import Mock
 
 import pytest
 
 from simio.app.builder import _deep_merge_dicts
-from simio.app.config_names import CLIENTS, WORKERS
+from simio.app.config_names import CLIENTS, WORKERS, CRONS
 from simio.app.default_config import get_default_config
-from tests.test_unit.test_app.conftest import TEST_APP_CONFIG
+from tests.test_unit.test_app.conftest import TEST_APP_CONFIG, example_cron
 
 
 @pytest.mark.parametrize(
@@ -43,3 +44,11 @@ class TestAppBuilder:
         for worker, worker_instance in app.app[WORKERS].items():
             result = await asyncio.gather(worker_instance)
             assert result[0] == TEST_APP_CONFIG[WORKERS][worker]["return_value"]
+
+    @pytest.mark.asyncio
+    async def test_created_cron(self, app):
+        assert len(app.app[CRONS]) == len(TEST_APP_CONFIG[CRONS]["*/1 * * * *"])
+        cron = app.app[CRONS][example_cron]
+
+        await cron.next()
+        app.app[CLIENTS][Mock].check.assert_called_with(alive=True)
