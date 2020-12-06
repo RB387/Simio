@@ -1,6 +1,3 @@
-import time
-
-
 class AppConfig:
     version: str = "version"
     name: str = "name"
