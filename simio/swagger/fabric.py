@@ -21,20 +21,6 @@ from simio.handler.base import HandlerMethod
 from simio.utils import is_typing
 
 
-def _cast_to_swagger_type(var_type: Union[Type, t.Trafaret]) -> str:
-    if is_typing(var_type):
-        var_type = var_type.__args__[0]
-    elif isinstance(var_type, t.Trafaret):
-        var_type = type(var_type)
-
-    if var_type not in PYTHON_TYPE_TO_SWAGGER:
-        raise UnsupportedSwaggerType(
-            f"Handler argument with type {var_type} is not supported with swagger"
-        )
-
-    return PYTHON_TYPE_TO_SWAGGER[var_type]
-
-
 def swagger_fabric(app_config: dict, app_routes: List[AppRoute]) -> SwaggerConfig:
     """
         Function to generate swagger config for application
@@ -78,10 +64,7 @@ def _create_swagger_method(
 
     if handler_method.request_schema is not None:
         schema_name = handler_method.request_schema.name
-        schema_properties = _create_swagger_properties(
-            handler_method.request_schema.trafaret
-        )
-        schema = SwaggerProperty(type="object", properties=schema_properties)
+        schema = _create_swagger_schema(handler_method.request_schema)
         method.parameters.append(
             SwaggerParameter(in_="body", name=schema_name, schema=schema,)
         )
@@ -108,6 +91,32 @@ def _create_swagger_method(
     return method
 
 
+def _cast_to_swagger_type(var_type: Union[Type, t.Trafaret]) -> str:
+    if is_typing(var_type):
+        var_type = var_type.__args__[0]
+    elif isinstance(var_type, t.Trafaret):
+        var_type = type(var_type)
+
+    if var_type not in PYTHON_TYPE_TO_SWAGGER:
+        raise UnsupportedSwaggerType(
+            f"Handler argument with type {var_type} is not supported with swagger"
+        )
+
+    return PYTHON_TYPE_TO_SWAGGER[var_type]
+
+
+def _create_swagger_schema(request_trafaret: t.Trafaret):
+    items_type = _cast_to_swagger_type(request_trafaret.trafaret)
+
+    if items_type == "array":
+        items = first(_create_swagger_properties(request_trafaret.trafaret))
+        return SwaggerProperty(type="array", items=items)
+    if items_type == "object":
+        properties = _create_swagger_properties(request_trafaret.trafaret)
+        return SwaggerProperty(type="object", properties=properties)
+    return SwaggerProperty(type=items_type)
+
+
 def _create_swagger_properties(request_trafaret: t.Trafaret) -> List[SwaggerProperty]:
     if isinstance(request_trafaret, t.Dict):
         properties = []
@@ -125,14 +134,6 @@ def _create_swagger_properties(request_trafaret: t.Trafaret) -> List[SwaggerProp
             properties.append(swagger_property)
         return properties
     if isinstance(request_trafaret, t.List):
-        items_type = _cast_to_swagger_type(request_trafaret.trafaret)
-
-        if items_type == "array":
-            items = first(_create_swagger_properties(request_trafaret.trafaret))
-            return [SwaggerProperty(type="array", items=items)]
-        if items_type == "object":
-            properties = _create_swagger_properties(request_trafaret.trafaret)
-            return [SwaggerProperty(type="object", properties=properties)]
-        return [SwaggerProperty(type="array", items=SwaggerProperty(type=items_type))]
+        return [_create_swagger_schema(request_trafaret)]
 
     raise ValueError(f"Found unexpected trafaret type {repr(request_trafaret)}")

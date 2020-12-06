@@ -1,12 +1,15 @@
 import asyncio
 import glob
 import json
+from asyncio import AbstractEventLoop
 from runpy import run_path
-from typing import Type, Awaitable, Callable, Any, List
+from typing import Type, Awaitable, Callable, Any, List, Optional as Opt
 
 from aiohttp import web
+from aiohttp.web_runner import BaseSite, TCPSite
 from swagger_ui import aiohttp_api_doc
 
+from simio.app.app import Application
 from simio.app.entities import AppRoute
 from simio.app.default_config import get_default_config
 from simio.clients.client_protocol import ClientProtocol
@@ -15,28 +18,6 @@ from simio.exceptions import WorkerTypeError
 from simio.handler.base import BaseHandler
 from simio.swagger.fabric import swagger_fabric
 from simio.swagger.entities import SwaggerConfig
-
-
-def _initialize_all_modules(handlers_path):
-    """
-    Runs all modules to execute decorators and register routes
-    """
-    for filepath in glob.iglob(f"{handlers_path}/**/*.py", recursive=True):
-        run_path(filepath)
-
-
-def _deep_merge_dicts(lhs: dict, rhs: dict) -> dict:
-    """
-    Deep merging two dicts
-    """
-    for key, value in rhs.items():
-        if isinstance(value, dict):
-            node = lhs.setdefault(key, {})
-            _deep_merge_dicts(node, value)
-        else:
-            lhs[key] = value
-
-    return lhs
 
 
 class AppBuilder:
@@ -48,7 +29,12 @@ class AppBuilder:
 
     _APP_ROUTES: List[AppRoute] = []
 
-    def __init__(self, config=None, loop=None):
+    def __init__(
+        self,
+        config=None,
+        loop: Opt[AbstractEventLoop] = None,
+        aiohttp_site_cls: Type[BaseSite] = TCPSite,
+    ):
         default_config = get_default_config()
 
         if config is None:
@@ -61,6 +47,8 @@ class AppBuilder:
         else:
             self._loop = loop
 
+        self._aiohttp_site_cls = aiohttp_site_cls
+
         _initialize_all_modules(self._config[APP][APP.handlers_path])
 
     @property
@@ -71,11 +59,14 @@ class AppBuilder:
     def get_app_routes():
         return AppBuilder._APP_ROUTES
 
-    def build_app(self) -> web.Application:
+    def build_app(self, **app_runner_config) -> Application:
         """
         Use this method to your application
 
         Adds routes, registers clients and workers, generating swagger
+
+        You can modify aiohttp's AppRunner with app_runner_config
+        app_runner_config is passing to AppRunner constructor
 
         :return: aiohttp Application
         """
@@ -83,7 +74,7 @@ class AppBuilder:
         app["config"] = self._config
         app.add_routes(self._get_routes())
 
-        self._register_clients(app)
+        self._loop.run_until_complete(self._register_clients(app))
         self._create_workers(app)
 
         if self._config[APP][APP.enable_swagger]:
@@ -92,7 +83,12 @@ class AppBuilder:
 
             aiohttp_api_doc(app, **self._config[APP][APP.swagger_config])
 
-        return app
+        return Application(
+            app=app,
+            loop=self._loop,
+            aiohttp_site_cls=self._aiohttp_site_cls,
+            **app_runner_config,
+        )
 
     def create_worker(
         self,
@@ -150,9 +146,11 @@ class AppBuilder:
         """
         return self._config.get(CLIENTS, [])
 
-    def _register_clients(self, app: web.Application):
+    async def _register_clients(self, app: web.Application):
         """
         Register clients in app
+
+        Method is async to make sure that correct event loop will be attached
         :param app: aiohttp application
         """
         app[CLIENTS] = {}
@@ -188,3 +186,25 @@ class AppBuilder:
 
         with open(path, "w") as f:
             f.write(json.dumps(swagger.json(), indent=4, sort_keys=True))
+
+
+def _initialize_all_modules(handlers_path):
+    """
+    Runs all modules to execute decorators and register routes
+    """
+    for filepath in glob.iglob(f"{handlers_path}/**/*.py", recursive=True):
+        run_path(filepath)
+
+
+def _deep_merge_dicts(lhs: dict, rhs: dict) -> dict:
+    """
+    Deep merging two dicts
+    """
+    for key, value in rhs.items():
+        if isinstance(value, dict):
+            node = lhs.setdefault(key, {})
+            _deep_merge_dicts(node, value)
+        else:
+            lhs[key] = value
+
+    return lhs

@@ -1,14 +1,12 @@
-from aiohttp import web
 from simio.app.builder import AppBuilder
 from {project_name}.config import get_config
 
 
 def main():
-    config = get_config()
-    builder = AppBuilder(config)
+    builder = AppBuilder(get_config())
     app = builder.build_app()
-    web.run_app(app)
+    app.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

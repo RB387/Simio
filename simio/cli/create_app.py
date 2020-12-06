@@ -40,6 +40,17 @@ PROJECT_STRUCTURE = {
 }
 
 
+@click.command(context_settings={"allow_extra_args": True})
+@click.option("--name", prompt="Your project name")
+def create_project(name: str):
+    """
+    CLI for project template generation
+    :param name: name of project
+    """
+    kwargs_container = {"project_name": name}
+    _create_project_files(PROJECT_STRUCTURE, os.getcwd(), kwargs_container)
+
+
 def _read_file_template(path: str, kwargs_container: dict):
     """
     Read data from file and format it with kwargs_container
@@ -90,14 +101,3 @@ def _create_project_files(
         else:
             _check_and_create_dir(temp_path)
             _create_project_files(value, temp_path, kwargs_container)
-
-
-@click.command(context_settings={"allow_extra_args": True})
-@click.option("--name", prompt="Your project name")
-def create_project(name: str):
-    """
-    CLI for project template generation
-    :param name: name of project
-    """
-    kwargs_container = {"project_name": name}
-    _create_project_files(PROJECT_STRUCTURE, os.getcwd(), kwargs_container)
