@@ -4,11 +4,15 @@ from unittest.mock import Mock
 import pytest
 
 from simio.app.builder import AppBuilder
-from simio.app.config_names import APP, CLIENTS, VARS, WORKERS, OTHER
+from simio.app.config_names import APP, CLIENTS, VARS, WORKERS, OTHER, CRONS
 
 
-async def example_worker(return_value):
+async def example_worker(app, return_value):
     return return_value
+
+
+async def example_cron(app):
+    app[CLIENTS][Mock].check(alive=True)
 
 
 TEST_APP_CONFIG = {
@@ -20,6 +24,7 @@ TEST_APP_CONFIG = {
     CLIENTS: {Mock: {"host": "localhost", "port": 27017,},},
     VARS: {"x": 1, "y": 2,},
     WORKERS: {example_worker: {"return_value": 5}},
+    CRONS: {"*/1 * * * *": (example_cron,)},
     OTHER: {"something": 1,},
 }
 

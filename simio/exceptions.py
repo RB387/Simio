@@ -12,3 +12,9 @@ class UnsupportedSwaggerType(Exception):
     """
 
     ...
+
+
+class InvalidCronFormat(Exception):
+    """
+    Raise this exception if cron has invalid format
+    """
