@@ -1,5 +1,6 @@
 import os
 from typing import Dict
+from string import Template
 
 import click
 
@@ -65,8 +66,8 @@ def _read_file_template(path: str, kwargs_container: dict):
     :return: formatted file content
     """
     with open(path, "r") as f:
-        file_content = f.read()
-        return file_content.format(**kwargs_container)
+        template = Template(f.read())
+        return template.substitute(**kwargs_container)
 
 
 def _write_example_file(path: str, file_content: str):

@@ -196,7 +196,7 @@ never-returning-functions=sys.exit
 [LOGGING]
 
 # Format style used to check logging format string. `old` means using %
-# formatting, `new` is for `{{}}` formatting,and `fstr` is for f-strings.
+# formatting, `new` is for `{}` formatting,and `fstr` is for f-strings.
 logging-format-style=old
 
 # Logging modules to check that the string format arguments are in logging
@@ -303,7 +303,7 @@ callbacks=cb_,
 
 # A regular expression matching the name of dummy variables (i.e. expected to
 # not be used).
-dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
+dummy-variables-rgx=_+$$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$$)|dummy|^ignored_|^unused_
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore.
@@ -323,7 +323,7 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 expected-line-ending-format=
 
 # Regexp for a line that is allowed to be longer than the limit.
-ignore-long-lines=^\s*(# )?<?https?://\S+>?$
+ignore-long-lines=^\s*(# )?<?https?://\S+>?$$
 
 # Number of spaces of indent required inside a hanging or continued line.
 indent-after-paren=4
@@ -339,7 +339,7 @@ max-line-length=100
 max-module-lines=1000
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
-# separator` is used to allow tabulation in dicts, etc.: {{1  : 1,\n222: 2}}.
+# separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
 # `trailing-comma` allows a space between comma and closing bracket: (a, ).
 # `empty-line` allows space-only lines.
 no-space-check=trailing-comma,

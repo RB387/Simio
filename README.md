@@ -37,11 +37,17 @@ All you need to run your application is:
     ```
 ## Handler
 Just add `route` decorator to your handler inherited from BaseHandler
+
+If you need custom request validator, you can change handler's property `request_validator_cls`
+with your own class that has `AbstractRequestValidator` interface.
+
+You can also change server response on request validation failure with property `on_exception_response`
+
 ```python
 import trafaret as t
 
-from simio.handler.base import BaseHandler
-from simio.handler.utils import route
+from simio.handler import BaseHandler
+from simio.handler.router import route
 
 
 RequestSchema = t.Dict({
@@ -76,6 +82,9 @@ Any async function that has `app` argument can be worker
 But for cron `app` should be the only one argument
 
 You can access logger, clients and everything else from app
+
+At this moment supported only async workers/crons, but you can easily create your own director with multiprocessing/multithreading.
+Just create class with AbstractDirector interface 
 ```python
 async def ping_worker(app: web.Application, sleep_time: int):
     app.logger.info('Work')
@@ -96,15 +105,17 @@ def get_config():
                 "host": "localhost"
             }
         },
-        WORKERS: {
-            ping_worker: {
-                "sleep_time": 5
-            }
-        },
-        CRONS: {
-            "*/1 * * * *": (
-                cron_job,
-            ),
+        DIRECTORS: {
+            AsyncWorkersDirector: {
+                ping_worker: {
+                    "sleep_time": 5
+                },
+            },
+            AsyncCronsDirector: {
+                "*/1 * * * *": (
+                    cron_job,
+                ),
+            },
         },
     }
 ```
@@ -127,8 +138,8 @@ def get_config():
 ```
 They can be accessed in handler like this:
 ```python
-from simio.handler.base import BaseHandler
-from simio.handler.utils import route
+from simio.handler import BaseHandler
+from simio.handler.router import route
 from simio.app.config_names import CLIENTS
 
 @route(path="/v1/hello_with_client/{user_id}/")

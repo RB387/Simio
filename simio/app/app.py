@@ -1,5 +1,5 @@
 from asyncio import AbstractEventLoop
-from typing import Callable, Type
+from typing import Callable, Type, Any, Awaitable, Iterator
 
 from aiohttp import web
 from aiohttp.web_runner import BaseSite
@@ -30,6 +30,21 @@ class Application:
         self._loop = loop
         self._runner = web.AppRunner(self._app, **app_runner_config)
         self._aiohttp_site_cls = aiohttp_site_cls
+
+    def __getitem__(self, key: str) -> Any:
+        return self._app[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._app[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self._app[key]
+
+    def __len__(self) -> int:
+        return len(self._app)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._app)
 
     @property
     def app(self):
@@ -62,3 +77,12 @@ class Application:
         log_func(f"======== Running on {site.name} ========\n(Press CTRL+C to quit)")
         if run_forever:
             self._loop.run_forever()
+
+    def add_startup(self, *startup_funcs: Callable[[Any], Awaitable]):
+        self._app.on_startup.append(*startup_funcs)
+
+    def add_cleanup(self, *cleanup_funcs: Callable[[Any], Awaitable]):
+        self._app.on_cleanup.append(*cleanup_funcs)
+
+    def add_shutdown(self, *shutdown_funcs: Callable[[Any], Awaitable]):
+        self._app.on_shutdown.append(*shutdown_funcs)
