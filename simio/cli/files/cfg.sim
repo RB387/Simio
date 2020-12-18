@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from simio.app.config_names import APP, CLIENTS, VARS, DIRECTORS
 from simio.app import AsyncCronsDirector, AsyncWorkersDirector
+from simio.app.config_names import APP, CLIENTS, VARS, DIRECTORS
 
 from $project_name.crons.heartbeat import heartbeat
 from $project_name.workers.ping import ping_worker
