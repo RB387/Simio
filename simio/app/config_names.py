@@ -1,3 +1,6 @@
+from typing import Union
+
+
 class AppConfig:
     version: str = "version"
     name: str = "name"
@@ -12,6 +15,7 @@ class AppConfig:
 APP = AppConfig
 CLIENTS = "clients"
 VARS = "vars"
-WORKERS = "workers"
-CRONS = "crons"
-OTHER = "other"
+DIRECTORS = "directors"
+
+
+ConfigNames = Union[APP, CLIENTS, VARS, DIRECTORS]

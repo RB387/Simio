@@ -3,8 +3,9 @@ import typing
 
 from simio.app.builder import AppBuilder
 from simio.app.entities import AppRoute
-from simio.handler.base import BaseHandler, HandlerMethod, RequestSchema
-from simio.handler.utils import route
+from simio.handler.base import BaseHandler
+from simio.handler.entities import RequestSchema, HandlerMethod
+from simio.handler.router import route
 from tests.conftest import SampleHandlerOneRaw, SampleSchemaOne, SampleHandlerTwoRaw
 
 

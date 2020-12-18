@@ -1,7 +1,7 @@
 lint:
-	black {project_name} && \
+	black $project_name && \
 	black tests && \
-	pylint {project_name}
+	pylint $project_name
 
 test:
 	pytest -vv

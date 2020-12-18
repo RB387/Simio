@@ -4,7 +4,9 @@ from unittest.mock import Mock
 import pytest
 
 from simio.app.builder import AppBuilder
-from simio.app.config_names import APP, CLIENTS, VARS, WORKERS, OTHER, CRONS
+from simio.app.config_names import APP, CLIENTS, VARS, DIRECTORS
+from simio.app.directors.crons import AsyncCronsDirector
+from simio.app.directors.workers import AsyncWorkersDirector
 
 
 async def example_worker(app, return_value):
@@ -23,9 +25,10 @@ TEST_APP_CONFIG = {
     },
     CLIENTS: {Mock: {"host": "localhost", "port": 27017,},},
     VARS: {"x": 1, "y": 2,},
-    WORKERS: {example_worker: {"return_value": 5}},
-    CRONS: {"*/1 * * * *": (example_cron,)},
-    OTHER: {"something": 1,},
+    DIRECTORS: {
+        AsyncWorkersDirector: {example_worker: {"return_value": 5}},
+        AsyncCronsDirector: {"*/1 * * * *": (example_cron,)},
+    },
 }
 
 

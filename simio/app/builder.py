@@ -1,22 +1,18 @@
 import asyncio
-import glob
 import json
 from asyncio import AbstractEventLoop
-from runpy import run_path
-from typing import Type, Awaitable, Callable, Any, List, Optional as Opt
+from typing import Type, List, Optional as Opt
 
-from croniter import croniter
-from aiocron import crontab
 from aiohttp import web
 from aiohttp.web_runner import BaseSite, TCPSite
 from swagger_ui import aiohttp_api_doc
 
-from simio.app.app import Application
+from simio.app import Application
 from simio.app.entities import AppRoute
 from simio.app.default_config import get_default_config
+from simio.app.utils import initialize_all_modules, deep_merge_dicts, directors_shutdown
 from simio.clients.client_protocol import ClientProtocol
-from simio.app.config_names import CLIENTS, WORKERS, APP, CRONS
-from simio.exceptions import WorkerTypeError, InvalidCronFormat
+from simio.app.config_names import CLIENTS, APP, DIRECTORS
 from simio.handler.base import BaseHandler
 from simio.swagger.fabric import swagger_fabric
 from simio.swagger.entities import SwaggerConfig
@@ -42,7 +38,7 @@ class AppBuilder:
         if config is None:
             config = {}
 
-        self._config = _deep_merge_dicts(default_config, config)
+        self._config = deep_merge_dicts(default_config, config)
 
         if loop is None:
             self._loop = asyncio.get_event_loop()
@@ -51,7 +47,7 @@ class AppBuilder:
 
         self._aiohttp_site_cls = aiohttp_site_cls
 
-        _initialize_all_modules(self._config[APP][APP.handlers_path])
+        initialize_all_modules(self._config[APP][APP.handlers_path])
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
@@ -76,9 +72,11 @@ class AppBuilder:
         app["config"] = self._config
         app.add_routes(self._get_routes())
 
-        self._loop.run_until_complete(self._register_clients(app))
-        self._create_workers(app)
-        self._create_crons(app)
+        self._loop.run_until_complete(
+            asyncio.gather(self._register_clients(app), self._create_directors(app),)
+        )
+
+        app.on_shutdown.append(directors_shutdown)
 
         if self._config[APP][APP.enable_swagger]:
             if self._config[APP][APP.autogen_swagger]:
@@ -92,45 +90,6 @@ class AppBuilder:
             aiohttp_site_cls=self._aiohttp_site_cls,
             **app_runner_config,
         )
-
-    def create_worker(
-        self,
-        app: web.Application,
-        worker_func: Callable[[web.Application, Any], Awaitable],
-        **kwargs,
-    ):
-        """
-        Creates workers for application
-        :param app: aiohttp Application
-        :param worker_func: worker that should be executed
-        :param kwargs: kwargs for worker
-        :return:
-        """
-        kwargs["app"] = app
-        worker = worker_func(**kwargs)
-
-        if not isinstance(  # pylint: disable=isinstance-second-argument-not-valid-type
-            worker, Awaitable
-        ):
-            raise WorkerTypeError("You are trying to create worker that is not async!")
-
-        app[WORKERS][worker_func] = self._loop.create_task(worker)
-
-    def create_cron(
-        self,
-        app: web.Application,
-        cron: str,
-        cron_job_func: Callable[[web.Application], Awaitable],
-    ):
-        timezone = self._config[APP][APP.timezone]
-
-        if not croniter.is_valid(cron):
-            raise InvalidCronFormat(f"Cron {cron} has invalid format")
-
-        cron_job = crontab(
-            cron, cron_job_func, args=(app,), loop=self._loop, tz=timezone
-        )
-        app[CRONS][cron_job_func] = cron_job
 
     @staticmethod
     def add_route(path: str, handler: Type[BaseHandler], name: str) -> AppRoute:
@@ -178,20 +137,14 @@ class AppBuilder:
             client_kwargs = self._config[CLIENTS][client]
             app[CLIENTS][client] = client(**client_kwargs)
 
-    def _create_workers(self, app: web.Application):
-        """
-        Create worker for application
-        :param app: aiohttp application
-        """
-        app[WORKERS] = {}
-        for worker_func, kwargs in self._config.get(WORKERS, {}).items():
-            self.create_worker(app, worker_func, **kwargs)
+    async def _create_directors(self, app: web.Application):
+        """Creates directors and start them"""
+        app[DIRECTORS] = {}
 
-    def _create_crons(self, app: web.Application):
-        app[CRONS] = {}
-        for cron, cron_jobs in self._config[CRONS].items():
-            for cron_job_func in cron_jobs:
-                self.create_cron(app, cron, cron_job_func)
+        for director_cls, config in self._config.get(DIRECTORS, {}).items():
+            director = director_cls(config)
+            app[DIRECTORS][director_cls] = director
+            await director.start(app)
 
     def _generate_swagger(self) -> SwaggerConfig:
         """
@@ -212,25 +165,3 @@ class AppBuilder:
 
         with open(path, "w") as f:
             f.write(json.dumps(swagger.json(), indent=4, sort_keys=True))
-
-
-def _initialize_all_modules(handlers_path):
-    """
-    Runs all modules to execute decorators and register routes
-    """
-    for filepath in glob.iglob(f"{handlers_path}/**/*.py", recursive=True):
-        run_path(filepath)
-
-
-def _deep_merge_dicts(lhs: dict, rhs: dict) -> dict:
-    """
-    Deep merging two dicts
-    """
-    for key, value in rhs.items():
-        if isinstance(value, dict):
-            node = lhs.setdefault(key, {})
-            _deep_merge_dicts(node, value)
-        else:
-            lhs[key] = value
-
-    return lhs

@@ -1,34 +1,23 @@
-from dataclasses import dataclass, field
-from typing import Any, Optional as Opt, List
-
-from aiohttp import web
-
-
 __doc__ = "Module with base entities for Handler"
 
-from trafaret import Trafaret
+import json
+from typing import Any, Optional as Opt, List, Type, Callable
+
+from aiohttp import web
+from aiohttp.web_exceptions import HTTPBadRequest
+
+from simio.handler.entities import HandlerMethod
+from simio.handler.request_validator import AbstractRequestValidator, RequestValidator
 
 
-@dataclass
-class RequestSchema:
-    trafaret: Trafaret
-    name: str
-
-
-@dataclass
-class HandlerMethod:
+def get_bad_request_exception(message: Any) -> HTTPBadRequest:
     """
-        Describes HTTP method of BaseHandler
-
-        path_args and query_args contains dict where
-        keys are names of args and value are type hints
+    :param message: text of your exception
+    :return: returns HTTPBadRequest exception with json:
+            {"error": message}
     """
-
-    method: str
-
-    request_schema: Opt[RequestSchema] = None
-    path_args: dict = field(default_factory=dict)
-    query_args: dict = field(default_factory=dict)
+    body = {"error": message}
+    return HTTPBadRequest(reason="Bad Request", body=json.dumps(body).encode())
 
 
 class BaseHandler(web.View):
@@ -45,10 +34,18 @@ class BaseHandler(web.View):
             self.response(body, status, **kwargs) -- get json web.Response
 
         `handler_methods` is property only for framework. Don't change value of this
+        `request_validator_cls` is class that will validate incoming request.
+                                You can write your own validator
+                                with AbstractRequestValidator interface
+        `on_exception_response` is function that receives exception message (str) and
+                                returns HTTPBadRequest.
+                                This function will be passed to request_validator_cls
 
     """
 
     handler_methods: Opt[List[HandlerMethod]] = None
+    request_validator_cls: Type[AbstractRequestValidator] = RequestValidator
+    on_exception_response: Callable[[Any], HTTPBadRequest] = get_bad_request_exception
 
     @property
     def app(self) -> web.Application:

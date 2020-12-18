@@ -5,7 +5,7 @@ import trafaret as t
 
 from simio.app.builder import AppBuilder
 from simio.handler.base import BaseHandler
-from simio.handler.utils import route
+from simio.handler.router import route
 
 
 @pytest.fixture(autouse=True, scope="function")

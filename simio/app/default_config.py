@@ -1,11 +1,12 @@
 import os
+from typing import Dict, Any
 
 from tzlocal import get_localzone
 
-from simio.app.config_names import APP
+from simio.app.config_names import APP, ConfigNames
 
 
-def get_default_config() -> dict:
+def get_default_config() -> Dict[ConfigNames, Any]:
     return {
         APP: {
             APP.version: "0.1.0",

@@ -13,4 +13,4 @@ class AppRoute:
     name: str
 
     def get_route_def(self) -> web.RouteDef:
-        return web.view(path=self.path, handler=self.handler)
+        return web.view(path=self.path, handler=self.handler, name=self.name)

@@ -1,42 +1,42 @@
 import os
 from pathlib import Path
 
-from simio.app.config_names import APP, CLIENTS, VARS, WORKERS, OTHER, CRONS
+from simio.app.config_names import APP, CLIENTS, VARS, DIRECTORS
+from simio.app import AsyncCronsDirector, AsyncWorkersDirector
 
-from {project_name}.crons.heartbeat import heartbeat
-from {project_name}.workers.ping import ping_worker
-from {project_name}.mock_client import ExampleClient
+from $project_name.crons.heartbeat import heartbeat
+from $project_name.workers.ping import ping_worker
+from $project_name.mock_client import ExampleClient
 
 
 def get_config():
     # fmt: off
-    return {{
-        APP: {{
-            APP.name: "{project_name}",
+    return {
+        APP: {
+            APP.name: "$project_name",
             APP.handlers_path: Path(__file__).parent / "handlers",
-        }},
-        CLIENTS: {{
-            ExampleClient: {{
+        },
+        CLIENTS: {
+            ExampleClient: {
                 "host": "localhost",
                 "port": 27017,
-            }},
-        }},
-        VARS: {{
+            },
+        },
+        VARS: {
             "x": os.getenv("X"),
             "y": os.getenv("Y"),
-        }},
-        WORKERS: {{
-            ping_worker: {{
-                "sleep_time": 5
-            }}
-        }},
-        CRONS: {{
-            "*/1 * * * *": (
-                heartbeat,
-            ),
-        }},
-        OTHER: {{
-            "something": 1,
-        }},
-    }}
+        },
+        DIRECTORS: {
+            AsyncWorkersDirector: {
+                ping_worker: {
+                    "sleep_time": 5
+                },
+            },
+            AsyncCronsDirector: {
+                "*/1 * * * *": (
+                    heartbeat,
+                ),
+            },
+        },
+    }
     # fmt: on

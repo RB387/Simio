@@ -17,7 +17,7 @@ from simio.swagger.entities import (
     SwaggerParameter,
 )
 from simio.swagger.type_mapping import PYTHON_TYPE_TO_SWAGGER
-from simio.handler.base import HandlerMethod
+from simio.handler.entities import HandlerMethod, RequestSchema
 from simio.utils import is_typing
 
 
@@ -105,7 +105,7 @@ def _cast_to_swagger_type(var_type: Union[Type, t.Trafaret]) -> str:
     return PYTHON_TYPE_TO_SWAGGER[var_type]
 
 
-def _create_swagger_schema(request_trafaret: t.Trafaret):
+def _create_swagger_schema(request_trafaret: Union[t.Trafaret, RequestSchema]):
     items_type = _cast_to_swagger_type(request_trafaret.trafaret)
 
     if items_type == "array":
