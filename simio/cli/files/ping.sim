@@ -1,6 +1,7 @@
 from asyncio import sleep
 
-from simio.job import async_worker, web
+from simio import web
+from simio.job import async_worker
 from simio_di import Var
 
 
