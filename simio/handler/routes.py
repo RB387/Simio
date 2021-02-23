@@ -45,7 +45,13 @@ class Router:
             )
             handler = wrap_handler(handler, request_validator)
 
-            self._add_route(method=method, path=path, handler=handler, name=name)
+            self._add_route(
+                method=method,
+                path=path,
+                handler=handler,
+                name=name,
+                handler_request=handler_request,
+            )
 
             return handler
 
@@ -58,10 +64,21 @@ class Router:
 
         return _handle
 
-    def _add_route(self, method: str, path: str, handler: Callable, name: str):
+    def _add_route(
+        self,
+        method: str,
+        path: str,
+        handler: Callable,
+        name: str,
+        handler_request: HandlerRequest,
+    ):
         self._routes.append(
             AppRoute(
-                method=method, handler=handler, path=self._prefix + path, name=name
+                method=method,
+                handler=handler,
+                path=self._prefix + path,
+                name=name,
+                handler_request=handler_request,
             )
         )
 
