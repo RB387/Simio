@@ -1,1 +1,4 @@
-from simio.handler.base import BaseHandler
+from simio.handler.routes import Router
+from simio.handler.entities import R
+
+router = Router()

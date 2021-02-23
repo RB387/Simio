@@ -2,20 +2,20 @@ import asyncio
 from unittest.mock import Mock
 
 import pytest
+from more_itertools import first
 
-from simio.app.directors.crons import AsyncCronsDirector
-from simio.app.directors.workers import AsyncWorkersDirector
-from simio.app.utils import deep_merge_dicts
-from simio.app.config_names import CLIENTS, DIRECTORS
+from simio import Application
+from simio.job import async_worker, async_cron
+from simio.utils import deep_merge_dicts
 from simio.app.default_config import get_default_config
-from tests.test_unit.test_app.conftest import TEST_APP_CONFIG, example_cron
+from tests.conftest import TEST_APP_CONFIG
 
 
 @pytest.mark.parametrize(
     "lhs, rhs, expected_result",
     (
         (
-            {"key": {"key1": 2, "key2": 3,}, "key1": 1},
+            {"key": {"key1": 2, "key2": 3,}, "key1": 1,},
             {"key": {"key1": 0, "key3": 4}, "key1": 2, "key2": 3,},
             {"key": {"key1": 0, "key2": 3, "key3": 4,}, "key1": 2, "key2": 3,},
         ),
@@ -28,34 +28,40 @@ def test_merge_configs(lhs, rhs, expected_result):
 
 class TestAppBuilder:
     def test_initiated_app_config(self, app):
-        assert app.app["config"] == deep_merge_dicts(
-            get_default_config(), TEST_APP_CONFIG
-        )
+        assert app["config"] == deep_merge_dicts(get_default_config(), TEST_APP_CONFIG)
 
-    def test_created_clients(self, app):
-        assert len(app.app[CLIENTS]) == len(TEST_APP_CONFIG[CLIENTS])
+    def test_routes(self, app: Application):
+        aiohttp_routes = app.app.router.routes()
+        routes = set()
 
-        for client, client_instance in app.app[CLIENTS].items():
-            for attr_name, attr_value in TEST_APP_CONFIG[CLIENTS][client].items():
-                assert getattr(client_instance, attr_name) == attr_value
+        for route in aiohttp_routes:
+            routes.add((route.name, route.method))
 
-    @pytest.mark.asyncio
-    async def test_created_workers(self, app):
-        workers = TEST_APP_CONFIG[DIRECTORS][AsyncWorkersDirector]
-        tasks = app.app[DIRECTORS][AsyncWorkersDirector]._worker_tasks
-        assert len(tasks) == len(TEST_APP_CONFIG[DIRECTORS][AsyncWorkersDirector])
-
-        for worker, worker_instance in tasks.items():
-            result = await asyncio.gather(worker_instance)
-            assert result[0] == workers[worker]["return_value"]
+        assert routes == {
+            ("sample_handler_get", "GET"),
+            ("sample_handler_post", "POST"),
+            ("sample_handler_three_get", "GET"),
+            ("sample_handler_two_get", "GET"),
+        }
 
     @pytest.mark.asyncio
-    async def test_created_cron(self, app):
-        crons = app[DIRECTORS][AsyncCronsDirector]._crons
-        assert len(crons) == len(
-            TEST_APP_CONFIG[DIRECTORS][AsyncCronsDirector]["*/1 * * * *"]
-        )
-        cron = app[DIRECTORS][AsyncCronsDirector][example_cron]
+    async def test_created_async_workers(self, app):
+        tasks = async_worker._running_tasks
 
-        await cron.next()
-        app.app[CLIENTS][Mock].check.assert_called_with(alive=True)
+        assert len(tasks) == 1
+
+        task = first(tasks)
+        result = await asyncio.gather(task)
+        assert result[0] == 5
+
+    # @pytest.mark.asyncio
+    # @pytest.mark.slow
+    # async def test_created_async_crons(self, app, builder_injector):
+    #     crons = async_cron._running_tasks
+    #     assert len(crons) == 1
+    #
+    #     cron = first(crons)
+    #
+    #     await cron.next()
+    #     mock = builder_injector._deps_container.get(Mock)()
+    #     mock.check.assert_called_with(alive=True)

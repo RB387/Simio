@@ -1,157 +1,133 @@
 import asyncio
 import json
 from asyncio import AbstractEventLoop
-from typing import Type, List, Optional as Opt
+from typing import List, Optional as Opt, Dict, Any, Iterable
 
 from aiohttp import web
-from aiohttp.web_runner import BaseSite, TCPSite
+from simio_di import (
+    DependencyInjector,
+    DependenciesContainerProtocol,
+    SingletoneDependenciesContainer,
+)
 from swagger_ui import aiohttp_api_doc
 
-from simio.app import Application
-from simio.app.entities import AppRoute
 from simio.app.default_config import get_default_config
-from simio.app.utils import initialize_all_modules, deep_merge_dicts, directors_shutdown
-from simio.clients.client_protocol import ClientProtocol
-from simio.app.config_names import CLIENTS, APP, DIRECTORS
-from simio.handler.base import BaseHandler
-from simio.swagger.fabric import swagger_fabric
+from simio.app.utils import initialize_all_modules
+from simio.app.config_names import AppConfig
+from simio.app.app import Application
+from simio.handler import router
+from simio.handler.routes import Router
+from simio.handler.entities import AppRoute
+from simio.utils import deep_merge_dicts
+from simio.job import async_worker, async_cron
+from simio.job.abstract import AbstractExecutor
 from simio.swagger.entities import SwaggerConfig
+from simio.swagger.fabric import swagger_fabric
+
+DEFAULT_EXECUTORS = (
+    async_worker,
+    async_cron,
+)
+DEFAULT_ROUTERS = (router,)
 
 
 class AppBuilder:
-    """
-        Class to build your application
-
-        Can be used only for one application because of global _APP_ROUTES property
-    """
-
-    _APP_ROUTES: List[AppRoute] = []
-
     def __init__(
         self,
-        config=None,
+        config: Dict[str, Any],
         loop: Opt[AbstractEventLoop] = None,
-        aiohttp_site_cls: Type[BaseSite] = TCPSite,
+        deps_container: Opt[DependenciesContainerProtocol] = None,
+        routers: Iterable[Router] = DEFAULT_ROUTERS,
+        job_executors: Iterable[AbstractExecutor] = DEFAULT_EXECUTORS,
     ):
         default_config = get_default_config()
 
-        if config is None:
-            config = {}
-
-        self._config = deep_merge_dicts(default_config, config)
-
         if loop is None:
-            self._loop = asyncio.get_event_loop()
-        else:
-            self._loop = loop
+            loop = asyncio.get_event_loop()
 
-        self._aiohttp_site_cls = aiohttp_site_cls
+        if deps_container is None:
+            deps_container = SingletoneDependenciesContainer()
 
-        initialize_all_modules(self._config[APP][APP.handlers_path])
+        self._loop = loop
+        self._config = deep_merge_dicts(default_config, config)
+        self._routers: List[Router] = []
+        self._job_executors: List[AbstractExecutor] = []
+        self._injector = DependencyInjector(self._config, deps_container=deps_container)
+        self._app = None
+
+        for router_ in routers:
+            self.add_router(router_)
+
+        for job_executor in job_executors:
+            self.add_executor(job_executor)
+
+        initialize_all_modules(self._config[AppConfig][AppConfig.app_path])
 
     @property
-    def loop(self) -> asyncio.AbstractEventLoop:
+    def loop(self):
         return self._loop
 
-    @staticmethod
-    def get_app_routes():
-        return AppBuilder._APP_ROUTES
+    def add_router(self, app_router: Router):
+        self._routers.append(app_router)
 
-    def build_app(self, **app_runner_config) -> Application:
-        """
-        Use this method to your application
+    def add_executor(self, executor: AbstractExecutor):
+        self._job_executors.append(executor)
 
-        Adds routes, registers clients and workers, generating swagger
+    def build_app(self, **runner_kwargs) -> Application:
+        if self._app is not None:
+            return self._app
 
-        You can modify aiohttp's AppRunner with app_runner_config
-        app_runner_config is passing to AppRunner constructor
-
-        :return: aiohttp Application
-        """
         app = web.Application()
         app["config"] = self._config
-        app.add_routes(self._get_routes())
 
-        self._loop.run_until_complete(
-            asyncio.gather(self._register_clients(app), self._create_directors(app),)
+        self._setup_routes(app)
+        self._setup_executors(app)
+        self._setup_swagger(app)
+
+        self._app = Application(
+            app_runner=web.AppRunner(app, **runner_kwargs), loop=self._loop,
         )
+        return self._app
 
-        app.on_shutdown.append(directors_shutdown)
-
-        if self._config[APP][APP.enable_swagger]:
-            if self._config[APP][APP.autogen_swagger]:
-                self._generate_swagger()
-
-            aiohttp_api_doc(app, **self._config[APP][APP.swagger_config])
-
-        return Application(
-            app=app,
-            loop=self._loop,
-            aiohttp_site_cls=self._aiohttp_site_cls,
-            **app_runner_config,
-        )
-
-    @staticmethod
-    def add_route(path: str, handler: Type[BaseHandler], name: str) -> AppRoute:
-        """
-        Add route to builder
-
-        :param path: path to handler
-        :param handler: handler
-        :param name: name of handler
-        :return:
-        """
-        route = AppRoute(handler=handler, path=path, name=name)
-        AppBuilder._APP_ROUTES.append(route)
-        return route
-
-    @staticmethod
-    def _get_routes() -> List[web.RouteDef]:
-        """
-        Get aiohttp routes from builder routes
-        :return: List[web.RouteDef]
-        """
+    def get_app_routes(self) -> List[AppRoute]:
         routes = []
 
-        for app_route in AppBuilder.get_app_routes():
-            routes.append(app_route.get_route_def())
+        for app_router in self._routers:
+            for route in app_router.routes:
+                routes.append(route)
 
         return routes
 
-    def _get_clients(self) -> List[Type[ClientProtocol]]:
-        """
-        Get clients from config
-        :return: List[Type[ClientProtocol]]
-        """
-        return self._config.get(CLIENTS, [])
+    def _setup_executors(self, app: web.Application):
+        for executor in self._job_executors:
+            for job in executor.jobs:
+                job.func = self._injector.inject(job.func)
 
-    async def _register_clients(self, app: web.Application):
-        """
-        Register clients in app
+            app.on_startup.append(executor.start)
+            app.on_shutdown.append(executor.stop)
 
-        Method is async to make sure that correct event loop will be attached
-        :param app: aiohttp application
-        """
-        app[CLIENTS] = {}
-        for client in self._get_clients():
-            client_kwargs = self._config[CLIENTS][client]
-            app[CLIENTS][client] = client(**client_kwargs)
+    def _setup_routes(self, app: web.Application):
+        routes = []
 
-    async def _create_directors(self, app: web.Application):
-        """Creates directors and start them"""
-        app[DIRECTORS] = {}
+        for route in self.get_app_routes():
+            route.handler = self._injector.inject(route.handler)
+            routes.append(route.as_route_def())
 
-        for director_cls, config in self._config.get(DIRECTORS, {}).items():
-            director = director_cls(config)
-            app[DIRECTORS][director_cls] = director
-            await director.start(app)
+        app.add_routes(routes)
+
+    def _setup_swagger(self, app: web.Application):
+        if self._config[AppConfig][AppConfig.enable_swagger]:
+            if self._config[AppConfig][AppConfig.autogen_swagger]:
+                self._generate_swagger()
+
+            aiohttp_api_doc(app, **self._config[AppConfig][AppConfig.swagger_config])
 
     def _generate_swagger(self) -> SwaggerConfig:
         """
         Generates and saves swagger to json file
         :return: SwaggerConfig object
         """
-        swagger = swagger_fabric(self._config[APP], self.get_app_routes())
+        swagger = swagger_fabric(self._config[AppConfig], self.get_app_routes())
         self._save_swagger(swagger)
 
         return swagger
@@ -161,7 +137,7 @@ class AppBuilder:
         Writes SwaggerConfig object to json file
         :param swagger: SwaggerConfig object
         """
-        path = self._config[APP][APP.swagger_config]["config_path"]
+        path = self._config[AppConfig][AppConfig.swagger_config]["config_path"]
 
         with open(path, "w") as f:
             f.write(json.dumps(swagger.json(), indent=4, sort_keys=True))

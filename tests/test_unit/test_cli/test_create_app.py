@@ -8,6 +8,7 @@ from simio.cli.create_app import create_project, _create_project_files, ProjectF
 
 class MockProjectFile(ProjectFile):
     def __init__(self, path):
+        super().__init__(path)
         self.path = path
 
 

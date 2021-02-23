@@ -1,4 +1,8 @@
-class WorkerTypeError(Exception):
+class SimioException(Exception):
+    ...
+
+
+class WorkerTypeError(SimioException):
     """
     Raise this exception if worker is not couroutine
     """
@@ -6,7 +10,7 @@ class WorkerTypeError(Exception):
     ...
 
 
-class UnsupportedSwaggerType(Exception):
+class UnsupportedSwaggerType(SimioException):
     """
     Raise this exception if request arg is not supported by swagger
     """
@@ -14,7 +18,7 @@ class UnsupportedSwaggerType(Exception):
     ...
 
 
-class InvalidCronFormat(Exception):
+class InvalidCronFormat(SimioException):
     """
     Raise this exception if cron has invalid format
     """

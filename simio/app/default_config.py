@@ -3,17 +3,17 @@ from typing import Dict, Any
 
 from tzlocal import get_localzone
 
-from simio.app.config_names import APP, ConfigNames
+from simio.app.config_names import AppConfig
 
 
-def get_default_config() -> Dict[ConfigNames, Any]:
+def get_default_config() -> Dict[Any, Any]:
     return {
-        APP: {
-            APP.version: "0.1.0",
-            APP.autogen_swagger: True,
-            APP.enable_swagger: True,
-            APP.timezone: get_localzone(),
-            APP.swagger_config: {
+        AppConfig: {
+            AppConfig.version: "0.1.0",
+            AppConfig.autogen_swagger: True,
+            AppConfig.enable_swagger: True,
+            AppConfig.timezone: get_localzone(),
+            AppConfig.swagger_config: {
                 "config_path": os.path.join(os.getcwd(), "swagger.json"),
             },
         },
