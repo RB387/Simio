@@ -54,14 +54,14 @@ class TestAppBuilder:
         result = await asyncio.gather(task)
         assert result[0] == 5
 
-    # @pytest.mark.asyncio
-    # @pytest.mark.slow
-    # async def test_created_async_crons(self, app, builder_injector):
-    #     crons = async_cron._running_tasks
-    #     assert len(crons) == 1
-    #
-    #     cron = first(crons)
-    #
-    #     await cron.next()
-    #     mock = builder_injector._deps_container.get(Mock)()
-    #     mock.check.assert_called_with(alive=True)
+    @pytest.mark.asyncio
+    @pytest.mark.slow
+    async def test_created_async_crons(self, app, builder_injector):
+        crons = async_cron._running_tasks
+        assert len(crons) == 1
+
+        cron = first(crons)
+
+        await cron.next()
+        mock = builder_injector._deps_container.get(Mock)()
+        mock.check.assert_called_with(alive=True)
