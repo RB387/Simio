@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from typing import List, Optional as Opt
 
+from simio.utils import deep_merge_dicts
+
 
 @dataclass
 class AbstractSwagger(ABC):
@@ -121,6 +123,6 @@ def _list_to_dict(swagger_elements: List[AbstractSwagger]):
     dictionary = {}
 
     for element in swagger_elements:
-        dictionary = {**dictionary, **element.json()}
+        dictionary = deep_merge_dicts(dictionary, element.json())
 
     return dictionary

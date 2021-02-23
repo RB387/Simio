@@ -1,14 +1,14 @@
 from datetime import datetime
 
-from aiohttp import web
-
-from simio.app.config_names import CLIENTS
+from simio import web
+from simio.job import async_cron
+from simio_di import Depends
 
 from $project_name.mock_client import ExampleClient
 
 
-async def heartbeat(app: web.Application):
-    db_client = app[CLIENTS][ExampleClient]
+@async_cron.register(cron="*/1 * * * *")
+async def heartbeat(app: web.Application, client: Depends[ExampleClient]):
 
     heartbeat_document = {
         "timestamp": datetime.now().timestamp(),
@@ -16,4 +16,4 @@ async def heartbeat(app: web.Application):
     }
     app.logger.info(heartbeat_document)
 
-    db_client.db.collection.insert(heartbeat_document)
+    client.db.collection.insert(heartbeat_document)

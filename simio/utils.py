@@ -40,3 +40,17 @@ def cast_cap_words_to_lower(string: str) -> str:
         lower_str += ch.lower()
 
     return lower_str
+
+
+def deep_merge_dicts(lhs: dict, rhs: dict) -> dict:
+    """
+    Deep merging two dicts
+    """
+    for key, value in rhs.items():
+        if isinstance(value, dict):
+            node = lhs.setdefault(key, {})
+            deep_merge_dicts(node, value)
+        else:
+            lhs[key] = value
+
+    return lhs

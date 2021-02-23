@@ -1,9 +1,10 @@
 from typing import Optional
 
 import trafaret as t
+from simio import router, R, web
+from simio_di import Depends
 
-from simio.handler import BaseHandler
-from simio.handler.router import route
+from $project_name.mock_client import ExampleClient
 
 
 RequestSchema = t.Dict({
@@ -11,10 +12,20 @@ RequestSchema = t.Dict({
 })
 
 
-@route(path="/v1/hello/{user_id}/")
-class ExampleHandler(BaseHandler):
-    async def post(self, example: RequestSchema, user_id: int):
-        return self.response({"id": user_id, "some_number": example["some_number"],})
+@router.post("/v1/hello/{user_id}/")
+async def simple_handler(
+    example: R[RequestSchema], user_id: R[int], example_client: Depends[ExampleClient]
+):
+    example_client.insert()
 
-    async def get(self, user_id: Optional[int]):
-        return self.response(f"Your id is {user_id}!")
+    return web.json_response(
+        {
+            "id": user_id,
+            "some_number": example["some_number"],
+        }
+    )
+
+
+@router.get("/v1/hello/{user_id}/")
+async def simple_get_handler(user_id: R[Optional[int]]):
+    return web.json_response(f"Your id is {user_id}!")

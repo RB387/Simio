@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 from typing import Callable, Any, Dict
 
@@ -6,7 +7,17 @@ from aiohttp.web_request import Request
 from trafaret import DataError, Trafaret
 from typingplus import cast
 
-from simio.handler.entities import HandlerMethod
+from simio.handler.entities import HandlerRequest
+
+
+def get_bad_request_exception(message: Any) -> HTTPBadRequest:
+    """
+    :param message: text of your exception
+    :return: returns HTTPBadRequest exception with json:
+            {"error": message}
+    """
+    body = {"error": message}
+    return HTTPBadRequest(reason="Bad Request", body=json.dumps(body).encode())
 
 
 class AbstractRequestValidator(ABC):
@@ -14,7 +25,7 @@ class AbstractRequestValidator(ABC):
 
     def __init__(
         self,
-        handler_method: HandlerMethod,
+        handler_method: HandlerRequest,
         on_exception_response: Callable[[Any], HTTPBadRequest],
     ):
         self._handler_method = handler_method
@@ -52,7 +63,7 @@ class RequestValidator(AbstractRequestValidator):
 
     def _cast_type(self, value, type_hint):
         """
-            Casting request data
+        Casting request data
         """
         try:
             if isinstance(type_hint, Trafaret):

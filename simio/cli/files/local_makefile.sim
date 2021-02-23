@@ -1,4 +1,4 @@
-lint:
+fmt:
 	black $project_name && \
 	black tests && \
 	pylint $project_name

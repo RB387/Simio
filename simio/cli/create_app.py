@@ -35,7 +35,9 @@ PROJECT_STRUCTURE = {
             "heartbeat.py": ProjectFile(path=os.path.join("files", "heartbeat_cron.sim")),
         }
     },
-    "tests": {},
+    "tests": {
+        "__init__.py": ProjectFile(path=os.path.join("files", "module_init.sim")),
+    },
     "run.py": ProjectFile(path=os.path.join("files", "run.sim")),
     "requirements.txt": ProjectFile(path=os.path.join("files", "requirements.sim")),
     "requirements-dev.txt": ProjectFile(path=os.path.join("files", "requirements-dev.sim")),

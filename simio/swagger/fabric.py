@@ -4,8 +4,7 @@ import trafaret as t
 from aiohttp.web_exceptions import HTTPBadRequest
 from more_itertools import first
 
-from simio.app.config_names import APP
-from simio.app.entities import AppRoute
+from simio.app.config_names import AppConfig
 from simio.exceptions import UnsupportedSwaggerType
 from simio.swagger.entities import (
     SwaggerConfig,
@@ -17,7 +16,7 @@ from simio.swagger.entities import (
     SwaggerParameter,
 )
 from simio.swagger.type_mapping import PYTHON_TYPE_TO_SWAGGER
-from simio.handler.entities import HandlerMethod, RequestSchema
+from simio.handler.entities import HandlerRequest, RequestSchema, AppRoute
 from simio.utils import is_typing
 
 
@@ -30,18 +29,19 @@ def swagger_fabric(app_config: dict, app_routes: List[AppRoute]) -> SwaggerConfi
     :return: SwaggerConfig object
     """
     swagger = SwaggerConfig(
-        info=SwaggerInfo(version=app_config[APP.version], title=app_config[APP.name],),
+        info=SwaggerInfo(
+            version=app_config[AppConfig.version], title=app_config[AppConfig.name],
+        ),
     )
 
     for route in app_routes:
         path = SwaggerPath(path=route.path,)
 
-        if route.handler.handler_methods is None:
+        if route.handler_request is None:
             continue
 
-        for handler_method in route.handler.handler_methods:
-            method = _create_swagger_method(handler_method, route)
-            path.methods.append(method)
+        method = _create_swagger_method(route.handler_request, route)
+        path.methods.append(method)
 
         swagger.paths.append(path)
 
@@ -49,7 +49,7 @@ def swagger_fabric(app_config: dict, app_routes: List[AppRoute]) -> SwaggerConfi
 
 
 def _create_swagger_method(
-    handler_method: HandlerMethod, route: AppRoute
+    handler_method: HandlerRequest, route: AppRoute
 ) -> SwaggerMethod:
     method = SwaggerMethod(
         tags=[route.name],

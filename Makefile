@@ -1,4 +1,4 @@
-lint:
+fmt:
 	black simio && black tests && pylint simio
 
 test:
